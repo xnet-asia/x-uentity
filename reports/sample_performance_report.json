@@ -1,0 +1,55 @@
+{
+  "_comment": "Sample performance report structure",
+  "timestamp": "2024-07-19T12:00:00Z",
+  "total_benchmarks": 6,
+  "results": [
+    {
+      "operation": "Create",
+      "iterations": 1000000,
+      "total_time": "500ms",
+      "avg_time_ns": "500 ns",
+      "ops_per_second": 2000000,
+      "timestamp": "2024-07-19T12:00:00Z"
+    },
+    {
+      "operation": "Query",
+      "iterations": 100000,
+      "total_time": "200ms",
+      "avg_time_ns": "2000 ns",
+      "ops_per_second": 500000,
+      "timestamp": "2024-07-19T12:00:00Z"
+    },
+    {
+      "operation": "GetByIdentifier",
+      "iterations": 5000000,
+      "total_time": "100ms",
+      "avg_time_ns": "20 ns",
+      "ops_per_second": 50000000,
+      "timestamp": "2024-07-19T12:00:00Z"
+    },
+    {
+      "operation": "Update",
+      "iterations": 1000000,
+      "total_time": "600ms",
+      "avg_time_ns": "600 ns",
+      "ops_per_second": 1666667,
+      "timestamp": "2024-07-19T12:00:00Z"
+    },
+    {
+      "operation": "Delete",
+      "iterations": 2000000,
+      "total_time": "300ms",
+      "avg_time_ns": "150 ns",
+      "ops_per_second": 6666667,
+      "timestamp": "2024-07-19T12:00:00Z"
+    },
+    {
+      "operation": "ConcurrentOperations",
+      "iterations": 500000,
+      "total_time": "1000ms",
+      "avg_time_ns": "2000 ns",
+      "ops_per_second": 500000,
+      "timestamp": "2024-07-19T12:00:00Z"
+    }
+  ]
+}
