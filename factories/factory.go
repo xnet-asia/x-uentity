@@ -4,24 +4,44 @@ import (
 	"github.com/xnetltd/x-uentity/repositories"
 	"github.com/xnetltd/x-uentity/usecases"
 	"github.com/xnetltd/x-uentity/handlers"
-	"github.com/gin-gonic/gin"
 )
 
-// Factory creates instances of repositories, usecases, and handlers
+// Factory creates instances with injectable middleware
 type Factory[T any] struct {
-	repo    repositories.Repository[T]
-	usecase usecases.Usecase[T]
-	handler handlers.Handler
+	repo           repositories.Repository[T]
+	usecase        usecases.Usecase[T]
+	entityHandler  *handlers.EntityHandler[T]
+	authHandler    handlers.AuthHandler
+	p2pServer      *handlers.P2PServer[T]
+	middlewareChain *handlers.MiddlewareChain[T]
 }
 
 func NewFactory[T any]() *Factory[T] {
 	repo := repositories.NewInMemoryRepository[T]()
 	usecase := usecases.NewBaseUsecase(repo)
+	authHandler := handlers.NewSimpleAuthHandler()
+	
+	// Default empty middleware chain
+	middlewareChain := handlers.NewMiddlewareChain[T]()
+	entityHandler := handlers.NewEntityHandler(repo, middlewareChain)
+	p2pServer := handlers.NewP2PServer(entityHandler, authHandler)
 
 	return &Factory[T]{
-		repo:    repo,
-		usecase: usecase,
+		repo:            repo,
+		usecase:         usecase,
+		entityHandler:   entityHandler,
+		authHandler:     authHandler,
+		p2pServer:       p2pServer,
+		middlewareChain: middlewareChain,
 	}
+}
+
+// WithMiddleware injects middleware into the handler
+func (f *Factory[T]) WithMiddleware(middlewares ...handlers.Middleware[T]) *Factory[T] {
+	f.middlewareChain = handlers.NewMiddlewareChain(middlewares...)
+	f.entityHandler = handlers.NewEntityHandler(f.repo, f.middlewareChain)
+	f.p2pServer = handlers.NewP2PServer(f.entityHandler, f.authHandler)
+	return f
 }
 
 func (f *Factory[T]) GetRepository() repositories.Repository[T] {
@@ -32,10 +52,14 @@ func (f *Factory[T]) GetUsecase() usecases.Usecase[T] {
 	return f.usecase
 }
 
-func (f *Factory[T]) SetHandler(handler handlers.Handler) {
-	f.handler = handler
+func (f *Factory[T]) GetEntityHandler() *handlers.EntityHandler[T] {
+	return f.entityHandler
 }
 
-func (f *Factory[T]) GetHandler() handlers.Handler {
-	return f.handler
+func (f *Factory[T]) GetAuthHandler() handlers.AuthHandler {
+	return f.authHandler
+}
+
+func (f *Factory[T]) GetP2PServer() *handlers.P2PServer[T] {
+	return f.p2pServer
 }
