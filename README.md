@@ -67,6 +67,20 @@ x-uentity/
 Only production Go packages live at the project root. Everything used for
 development or demonstration is isolated under `dev/`.
 
+## Runtime Demo
+
+Run the entity flow and see auth, anonymous access, and middleware output:
+
+```bash
+go run ./dev/examples
+```
+
+To see the same behavior from the focused test:
+
+```bash
+go test -count=1 -v ./handlers -run TestEntityHandlerPermissionsAndCRUD
+```
+
 ## Middleware
 
 Implement `Middleware[T]` interface for ingress/egress processing:
