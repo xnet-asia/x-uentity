@@ -1,10 +1,12 @@
-package repositories
+package benchmarks
 
 import (
 	"fmt"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/xnetltd/x-uentity/repositories"
 )
 
 // BenchmarkResult holds the results of a performance test
@@ -20,17 +22,17 @@ type BenchmarkResult struct {
 
 // PerformanceReport holds multiple benchmark results
 type PerformanceReport struct {
-	Timestamp   time.Time
-	Results     []BenchmarkResult
-	TotalTime   time.Duration
-	MemBefore   uint64
-	MemAfter    uint64
-	MemAlloced  uint64
+	Timestamp  time.Time
+	Results    []BenchmarkResult
+	TotalTime  time.Duration
+	MemBefore  uint64
+	MemAfter   uint64
+	MemAlloced uint64
 }
 
 // BenchmarkRepositoryCreate benchmarks the Create operation
 func BenchmarkRepositoryCreate(b *testing.B) {
-	repo := NewInMemoryRepository[testEntity]()
+	repo := repositories.NewInMemoryRepository[testEntity]()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -41,7 +43,7 @@ func BenchmarkRepositoryCreate(b *testing.B) {
 
 // BenchmarkRepositoryQuery benchmarks the Query operation
 func BenchmarkRepositoryQuery(b *testing.B) {
-	repo := NewInMemoryRepository[testEntity]()
+	repo := repositories.NewInMemoryRepository[testEntity]()
 
 	// Pre-populate with 1000 entities
 	for i := 0; i < 1000; i++ {
@@ -59,7 +61,7 @@ func BenchmarkRepositoryQuery(b *testing.B) {
 
 // BenchmarkRepositoryGetByIdentifier benchmarks the GetByIdentifier operation
 func BenchmarkRepositoryGetByIdentifier(b *testing.B) {
-	repo := NewInMemoryRepository[testEntity]()
+	repo := repositories.NewInMemoryRepository[testEntity]()
 
 	// Pre-populate
 	for i := 0; i < 1000; i++ {
@@ -75,7 +77,7 @@ func BenchmarkRepositoryGetByIdentifier(b *testing.B) {
 
 // BenchmarkRepositoryUpdate benchmarks the Update operation
 func BenchmarkRepositoryUpdate(b *testing.B) {
-	repo := NewInMemoryRepository[testEntity]()
+	repo := repositories.NewInMemoryRepository[testEntity]()
 
 	// Pre-populate
 	for i := 0; i < 1000; i++ {
@@ -92,7 +94,7 @@ func BenchmarkRepositoryUpdate(b *testing.B) {
 
 // BenchmarkRepositoryDelete benchmarks the Delete operation
 func BenchmarkRepositoryDelete(b *testing.B) {
-	repo := NewInMemoryRepository[testEntity]()
+	repo := repositories.NewInMemoryRepository[testEntity]()
 
 	// Create entities for each iteration
 	b.ResetTimer()
@@ -111,7 +113,7 @@ func BenchmarkRepositoryDelete(b *testing.B) {
 
 // BenchmarkConcurrentOperations benchmarks concurrent read/write operations
 func BenchmarkConcurrentOperations(b *testing.B) {
-	repo := NewInMemoryRepository[testEntity]()
+	repo := repositories.NewInMemoryRepository[testEntity]()
 
 	// Pre-populate
 	for i := 0; i < 100; i++ {

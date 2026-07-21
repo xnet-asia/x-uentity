@@ -14,13 +14,13 @@ This directory contains performance test reports for x-uentity.
 
 ```bash
 # Run all benchmarks
-go test -bench=. -benchmem ./benchmarks
+go test -bench=. -benchmem ./dev/benchmarks
 ```
 
 ### Using the Provided Script
 
 ```bash
-bash scripts/run_benchmarks.sh
+./dev/run_benchmarks.sh
 ```
 
 ## Benchmark Operations

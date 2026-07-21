@@ -15,12 +15,12 @@ type ReportGenerator struct {
 
 // RepositoryBenchmarkResult represents a single benchmark result
 type RepositoryBenchmarkResult struct {
-	Operation      string        `json:"operation"`
-	Iterations     int           `json:"iterations"`
-	TotalTime      string        `json:"total_time"`
-	AvgTime        string        `json:"avg_time_ns"`
-	OpsPerSecond   float64       `json:"ops_per_second"`
-	Timestamp      string        `json:"timestamp"`
+	Operation    string  `json:"operation"`
+	Iterations   int     `json:"iterations"`
+	TotalTime    string  `json:"total_time"`
+	AvgTime      string  `json:"avg_time_ns"`
+	OpsPerSecond float64 `json:"ops_per_second"`
+	Timestamp    string  `json:"timestamp"`
 }
 
 // NewReportGenerator creates a new report generator
@@ -55,9 +55,9 @@ func (rg *ReportGenerator) SaveReport(filename string) error {
 
 	// Create report structure
 	report := map[string]interface{}{
-		"timestamp": time.Now().Format(time.RFC3339),
+		"timestamp":        time.Now().Format(time.RFC3339),
 		"total_benchmarks": len(rg.Results),
-		"results":        rg.Results,
+		"results":          rg.Results,
 	}
 
 	// Marshal to JSON

@@ -12,6 +12,10 @@
 # Output of the go coverage tool
 *.out
 
+# Generated development reports
+dev/reports/benchmark_output.txt
+dev/reports/performance_test_report.json
+
 # Dependency directories
 vendor/
 

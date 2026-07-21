@@ -54,18 +54,18 @@ func main() {
 
 ```
 x-uentity/
-├── domain/              # Domain models
-├── repositories/        # Repository layer
-├── usecases/           # Business logic
-├── handlers/           # P2P handlers + middleware
-│   ├── entity_handler.go     # Entity CRUD handler
-│   ├── auth_handler.go       # Auth/token validation
-│   ├── p2p_server.go         # P2P with HTTP fallback
-│   └── middleware_examples.go # Example middleware
-├── interfaces/         # Service interfaces
-├── factories/          # Factory with middleware injection
+├── domain/          # Domain models
+├── repositories/    # Repository layer
+├── usecases/        # Business logic
+├── handlers/        # Auth, entity, P2P, and middleware
+├── interfaces/      # External service contracts
+├── factories/       # Factory and dependency wiring
+├── dev/             # Examples, benchmarks, reports, and tooling
 └── go.mod
 ```
+
+Only production Go packages live at the project root. Everything used for
+development or demonstration is isolated under `dev/`.
 
 ## Middleware
 

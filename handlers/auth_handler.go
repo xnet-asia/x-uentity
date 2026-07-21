@@ -1,5 +1,12 @@
 package handlers
 
+import (
+	"errors"
+	"sync"
+)
+
+var ErrInvalidCredentials = errors.New("client id and token are required")
+
 // AuthHandler handles client authentication
 type AuthHandler interface {
 	// Authenticate validates token and returns client auth state
@@ -14,6 +21,7 @@ type AuthHandler interface {
 
 // SimpleAuthHandler implements AuthHandler
 type SimpleAuthHandler struct {
+	mu     sync.RWMutex
 	tokens map[string]*ClientAuth // token -> ClientAuth
 }
 
@@ -24,23 +32,37 @@ func NewSimpleAuthHandler() *SimpleAuthHandler {
 }
 
 func (h *SimpleAuthHandler) Authenticate(token string) (*ClientAuth, error) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
 	if auth, exists := h.tokens[token]; exists {
-		return auth, nil
+		copy := *auth
+		return &copy, nil
 	}
-	return &ClientAuth{IsAuth: false}, nil // Anonymous
+	return &ClientAuth{ID: "anonymous", IsAuth: false}, nil
 }
 
 func (h *SimpleAuthHandler) Register(id, token string) (*ClientAuth, error) {
+	if id == "" || token == "" {
+		return nil, ErrInvalidCredentials
+	}
+
 	auth := &ClientAuth{
 		ID:     id,
 		Token:  token,
 		IsAuth: true,
 	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	h.tokens[token] = auth
-	return auth, nil
+	copy := *auth
+	return &copy, nil
 }
 
 func (h *SimpleAuthHandler) Revoke(id string) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	for token, auth := range h.tokens {
 		if auth.ID == id {
 			delete(h.tokens, token)

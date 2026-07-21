@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net"
 )
@@ -21,6 +22,16 @@ func NewP2PServer[T any](entityHandler *EntityHandler[T], authHandler AuthHandle
 
 // HandleP2PConnection handles a P2P client connection
 func (s *P2PServer[T]) HandleP2PConnection(conn net.Conn) {
+	_ = s.ServeConnection(conn)
+}
+
+// ServeConnection handles newline-delimited JSON requests until the peer
+// disconnects. It returns transport and authentication errors to callers that
+// need lifecycle control.
+func (s *P2PServer[T]) ServeConnection(conn net.Conn) error {
+	if conn == nil {
+		return errors.New("connection is required")
+	}
 	defer conn.Close()
 
 	decoder := json.NewDecoder(conn)
@@ -28,31 +39,43 @@ func (s *P2PServer[T]) HandleP2PConnection(conn net.Conn) {
 
 	for {
 		var msg struct {
-			Token   string
-			Request *EntityRequest[T]
+			Token   string            `json:"token"`
+			Request *EntityRequest[T] `json:"request"`
 		}
 
 		if err := decoder.Decode(&msg); err != nil {
-			if err != io.EOF {
-				break
+			if errors.Is(err, io.EOF) {
+				return nil
 			}
+			return err
 		}
 
 		// Authenticate
-		auth, _ := s.authHandler.Authenticate(msg.Token)
+		auth, err := s.authHandler.Authenticate(msg.Token)
+		if err != nil {
+			return err
+		}
 
 		// Handle entity request
-		resp, _ := s.entityHandler.Handle(auth, msg.Request)
+		resp, err := s.entityHandler.Handle(auth, msg.Request)
+		if err != nil {
+			return err
+		}
 
 		// Send response back
-		encoder.Encode(resp)
+		if err := encoder.Encode(resp); err != nil {
+			return err
+		}
 	}
 }
 
 // HandleHTTPFallback handles HTTP request as fallback
 func (s *P2PServer[T]) HandleHTTPFallback(token string, req *EntityRequest[T]) (*EntityResponse[T], error) {
 	// Authenticate
-	auth, _ := s.authHandler.Authenticate(token)
+	auth, err := s.authHandler.Authenticate(token)
+	if err != nil {
+		return nil, err
+	}
 
 	// Handle entity request
 	return s.entityHandler.Handle(auth, req)

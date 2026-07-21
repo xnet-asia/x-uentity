@@ -1,6 +1,8 @@
 package benchmarks
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -8,6 +10,11 @@ import (
 // TestPerformanceReportGeneration tests the report generation functionality
 func TestPerformanceReportGeneration(t *testing.T) {
 	gen := NewReportGenerator()
+	const reportName = "performance_test_report.json"
+	t.Cleanup(func() {
+		_ = os.Remove(filepath.Join("reports", reportName))
+		_ = os.Remove("reports")
+	})
 
 	// Add sample results
 	gen.AddResult("Create", 1000000, 500*time.Millisecond, 2000000)
@@ -18,7 +25,7 @@ func TestPerformanceReportGeneration(t *testing.T) {
 	gen.AddResult("ConcurrentOperations", 500000, 1000*time.Millisecond, 500000)
 
 	// Save report
-	err := gen.SaveReport("performance_test_report.json")
+	err := gen.SaveReport(reportName)
 	if err != nil {
 		t.Fatalf("Failed to save report: %v", err)
 	}

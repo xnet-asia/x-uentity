@@ -11,26 +11,19 @@ import (
 func TestRepositoryCreate(t *testing.T) {
 	gen := NewReportGenerator()
 	start := time.Now()
+	const iterations = 1_000
 
-	// Run create benchmark
-	t.Run("Create Performance", func(t *testing.B) {
-		run := func(b *testing.B) {
-			repo := NewInMemoryRepository[testEntity]()
-			b.ResetTimer()
-			for i := 0; i < b.N; i++ {
-				entity := testEntity{ID: fmt.Sprintf("entity-%d", i), Value: "test"}
-				repo.Create(entity.ID, entity)
-			}
-			b.StopTimer()
-
-			totalTime := time.Since(start)
-			opsPerSec := float64(b.N) / totalTime.Seconds()
-			gen.AddResult("Create", b.N, totalTime, opsPerSec)
+	repo := NewInMemoryRepository[testEntity]()
+	for i := 0; i < iterations; i++ {
+		entity := testEntity{ID: fmt.Sprintf("entity-%d", i), Value: "test"}
+		if err := repo.Create(entity.ID, entity); err != nil {
+			t.Fatal(err)
 		}
+	}
 
-		// This would be called by benchmark framework
-		_ = run
-	})
+	totalTime := time.Since(start)
+	opsPerSec := float64(iterations) / totalTime.Seconds()
+	gen.AddResult("Create", iterations, totalTime, opsPerSec)
 }
 
 // TestRepositoryThreadSafety tests concurrent access
