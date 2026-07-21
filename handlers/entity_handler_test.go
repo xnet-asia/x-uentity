@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/xnetltd/x-uentity/repositories"
 )
 
@@ -14,6 +15,20 @@ type handlerTestEntity struct {
 type recordingMiddleware struct {
 	name  string
 	calls *[]string
+}
+
+type authRecordingMiddleware struct {
+	auth *ClientAuth
+}
+
+func (m *authRecordingMiddleware) Ingress(auth *ClientAuth, _ *EntityRequest[handlerTestEntity]) error {
+	copy := *auth
+	m.auth = &copy
+	return nil
+}
+
+func (m *authRecordingMiddleware) Egress(_ *ClientAuth, _ *EntityResponse[handlerTestEntity]) error {
+	return nil
 }
 
 func (m recordingMiddleware) Ingress(_ *ClientAuth, _ *EntityRequest[handlerTestEntity]) error {
@@ -76,5 +91,31 @@ func TestMiddlewareOrder(t *testing.T) {
 	want := []string{"in:first", "in:second", "out:second", "out:first"}
 	if !reflect.DeepEqual(calls, want) {
 		t.Fatalf("middleware calls = %v, want %v", calls, want)
+	}
+}
+
+func TestEntityHandlerCreatesAnonymousSource(t *testing.T) {
+	recorder := &authRecordingMiddleware{}
+	handler := NewEntityHandler(
+		repositories.NewInMemoryRepository[handlerTestEntity](),
+		NewMiddlewareChain[handlerTestEntity](recorder),
+	)
+
+	if _, err := handler.Handle(nil, &EntityRequest[handlerTestEntity]{Action: "query"}); err != nil {
+		t.Fatal(err)
+	}
+	if recorder.auth == nil || recorder.auth.IsAuth || recorder.auth.Source == "" {
+		t.Fatalf("anonymous auth = %+v", recorder.auth)
+	}
+	if _, err := uuid.Parse(recorder.auth.Source); err != nil {
+		t.Fatalf("anonymous source %q is not a valid UUID: %v", recorder.auth.Source, err)
+	}
+
+	firstSource := recorder.auth.Source
+	if _, err := handler.Handle(nil, &EntityRequest[handlerTestEntity]{Action: "query"}); err != nil {
+		t.Fatal(err)
+	}
+	if recorder.auth.Source == firstSource {
+		t.Fatalf("anonymous sources are not unique: %q", firstSource)
 	}
 }

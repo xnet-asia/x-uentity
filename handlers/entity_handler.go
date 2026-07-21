@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/xnetltd/x-uentity/repositories"
 )
 
@@ -12,6 +13,11 @@ type ClientAuth struct {
 	ID     string
 	Token  string
 	IsAuth bool
+	Source string
+}
+
+func newAnonymousAuth() *ClientAuth {
+	return &ClientAuth{Source: uuid.NewString(), IsAuth: false}
 }
 
 // EntityRequest is a P2P/HTTP request
@@ -113,7 +119,7 @@ func (h *EntityHandler[T]) Handle(auth *ClientAuth, req *EntityRequest[T]) (*Ent
 		return &EntityResponse[T]{Success: false, Error: "request is required", Code: 400}, nil
 	}
 	if auth == nil {
-		auth = &ClientAuth{ID: "anonymous"}
+		auth = newAnonymousAuth()
 	}
 	if req.Context == nil {
 		req.Context = context.Background()

@@ -1,6 +1,10 @@
 package handlers
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/google/uuid"
+)
 
 func TestSimpleAuthHandler(t *testing.T) {
 	handler := NewSimpleAuthHandler()
@@ -9,8 +13,19 @@ func TestSimpleAuthHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if anon.IsAuth || anon.ID != "anonymous" {
+	if anon.IsAuth || anon.Source == "" {
 		t.Fatalf("anonymous auth = %+v", anon)
+	}
+	if _, err := uuid.Parse(anon.Source); err != nil {
+		t.Fatalf("anonymous source %q is not a valid UUID: %v", anon.Source, err)
+	}
+
+	secondAnon, err := handler.Authenticate("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if secondAnon.Source == anon.Source {
+		t.Fatalf("anonymous sources are not unique: %q", anon.Source)
 	}
 
 	if _, err := handler.Register("client-1", "token-1"); err != nil {
@@ -33,5 +48,11 @@ func TestSimpleAuthHandler(t *testing.T) {
 	}
 	if auth.IsAuth {
 		t.Fatal("revoked token is still authenticated")
+	}
+	if auth.Source == "" {
+		t.Fatal("revoked token did not receive an anonymous source")
+	}
+	if _, err := uuid.Parse(auth.Source); err != nil {
+		t.Fatalf("anonymous source %q is not a valid UUID: %v", auth.Source, err)
 	}
 }

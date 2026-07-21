@@ -39,7 +39,7 @@ func (h *SimpleAuthHandler) Authenticate(token string) (*ClientAuth, error) {
 		copy := *auth
 		return &copy, nil
 	}
-	return &ClientAuth{ID: "anonymous", IsAuth: false}, nil
+	return newAnonymousAuth(), nil
 }
 
 func (h *SimpleAuthHandler) Register(id, token string) (*ClientAuth, error) {

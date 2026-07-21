@@ -36,6 +36,7 @@ func (s *P2PServer[T]) ServeConnection(conn net.Conn) error {
 
 	decoder := json.NewDecoder(conn)
 	encoder := json.NewEncoder(conn)
+	var anonymousAuth *ClientAuth
 
 	for {
 		var msg struct {
@@ -54,6 +55,13 @@ func (s *P2PServer[T]) ServeConnection(conn net.Conn) error {
 		auth, err := s.authHandler.Authenticate(msg.Token)
 		if err != nil {
 			return err
+		}
+		if !auth.IsAuth {
+			if anonymousAuth == nil {
+				anonymousAuth = auth
+			} else {
+				auth = anonymousAuth
+			}
 		}
 
 		// Handle entity request
